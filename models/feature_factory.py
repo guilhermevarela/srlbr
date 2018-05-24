@@ -20,8 +20,8 @@ class FeatureFactory(object):
     @staticmethod
     def klasses():
         return {'ColumnDepTreeParser', 'ColumnShifter', 'ColumnShifterCTX_P',
-        'ColumnPassiveVoice', 'ColumnPredDist', 'ColumnPredMarker', 'ColumnPredMorph',
-        'ColumnT'}
+                'ColumnPassiveVoice', 'ColumnPredDist', 'ColumnPredMarker',
+                'ColumnPredMorph'}
 
     # Creates an instance of class given schema and db
     @staticmethod
@@ -178,14 +178,11 @@ class ColumnShifterCTX_P(object):
         times = []
         predicate_d = _predicatedict(self.db)
         for time, proposition in self.db['P'].items():
-            try: 
-                predicate_time =  predicate_d[proposition]
-            except KeyError:
-                import code; code.interact(local=dict(globals(), **locals()))
+            predicate_time =  predicate_d[proposition]
 
             for col in self.columns:
                 for s in self.shifts:
-                    new_col = self.mapper[(s, col)]                    
+                    new_col = self.mapper[(s, col)]
                     if (predicate_time + s in self.db['P']) and\
                          (self.db['P'][predicate_time + s] == proposition):
                         self.dict_shifted[new_col][time] = self.db[col][predicate_time + s]
@@ -547,11 +544,11 @@ class ColumnDepTreeParser(object):
         G = nx.Graph()
         root = None
         for i in range(lb, ub):
-            G.add_node(i, **self._crosssection(i))
+            G.add_node(int(i), **self._crosssection(int(i)))
 
         for i in range(lb, ub):
-            v = G.node[i]['DTREE']  # reference to the next node
-            u = G.node[i]['ID']  # reference to the current node within proposition
+            v = int(G.node[i]['DTREE'])  # reference to the next node
+            u = int(G.node[i]['ID'])  # reference to the current node within proposition
             if v == 0:
                 root = i
             else:
@@ -562,33 +559,36 @@ class ColumnDepTreeParser(object):
     def _crosssection(self, idx):
         list_keys = list(self.db.keys())
         d = {key: self.db[key][idx] for key in list_keys}
+
         d['discovered'] = False
         return d
 
 
-def _predicatedict(db):
-    d = {
-        db['P'][time]: time
-        for time, pred in db['PRED'].items() if (pred != '-')
-    }
-    return d
-
-def _process_passivevoice(dictdb):
-
-    pvoice_marker = FeatureFactory().make('ColumnPassiveVoice', dictdb)
-    target_dir = '/datasets_1.1/csvs/column_passivevoice/'
-    passivevoice = pvoice_marker.run()
-
-    _store(passivevoice, 'passive_voice', target_dir)
+def get_shifter(db, refresh=True):
+    '''
+        Builds rolling windows across tokens
 
 
-def _process_predmorph(dictdb):
+    '''
+    columns_shift = ('FORM', 'LEMMA', 'FUNC', 'GPOS')
+    if refresh:
+        delta = 3
+        shifts = [d for d in range(-delta, delta + 1, 1) if d != 0]
+        windows = _process_shifter(db, columns_shift, shifts)
+    else:
+        windows = _load_shifter(db, columns_shift)
 
-    morpher = FeatureFactory().make('ColumnPredMorph', dictdb)
-    target_dir = '/datasets_1.1/csvs/column_predmorph/'
-    predmorph = morpher.run()
+    return windows
 
-    _store(predmorph['PRED_MORPH'], 'pred_morph', target_dir)
+
+def _load_shifter(dictdb, columns):
+    target_dir = 'datasets_1.1/csvs/column_shifter/'
+    shifted = defaultdict(dict)
+    for col in columns:
+        target_path = '{:}{:}.csv'.format(target_dir, col.lower())
+        _df = pd.read_csv(target_path, encoding='utf-8', index_col=0)
+        shifted.update(_df.to_dict())
+    return shifted
 
 
 def _process_shifter(dictdb, columns, shifts, store=True):
@@ -601,6 +601,37 @@ def _process_shifter(dictdb, columns, shifts, store=True):
         _store_columns(shifted, columns, target_dir)
 
     return shifted
+
+
+def _predicatedict(db):
+    d = {
+        db['P'][time]: time
+        for time, pred in db['PRED'].items() if (pred != '-')
+    }
+    return d
+
+
+def _process_passivevoice(dictdb, store=True):
+    pvoice_marker = FeatureFactory().make('ColumnPassiveVoice', dictdb)
+    target_dir = 'datasets_1.1/csvs/column_passivevoice/'
+    passivevoice = pvoice_marker.run()
+
+    if store:
+        _store(passivevoice, 'passive_voice', target_dir)
+
+    return passivevoice
+
+
+def _process_predmorph(dictdb, store=True):
+
+    morpher = FeatureFactory().make('ColumnPredMorph', dictdb)
+    target_dir = 'datasets_1.1/csvs/column_predmorph/'
+    predmorph = morpher.run()
+
+    if store:
+        _store(predmorph['PRED_MORPH'], 'pred_morph', target_dir)
+
+    return predmorph
 
 
 def _process_shifter_ctx_p(db, columns, shifts, store=True):
@@ -625,24 +656,17 @@ def _process_predicate_dist(dictdb):
     pd.DataFrame.from_dict(d).to_csv(filename, sep=',', encoding='utf-8')
 
 
-def _process_t(dictdb):
+def _process_predicate_marker(dictdb, store=True):
 
-    column_t = FeatureFactory().make('ColumnT', dictdb)
-    d = column_t.run()
+    column_predmarker = FeatureFactory().make('ColumnPredMarker', dictdb)
+    d = column_predmarker.run()
 
-    target_dir = '/datasets_1.1/csvs/column_t/'
-    filename = '{:}{:}.csv'.format(target_dir, 't')
-    pd.DataFrame.from_dict(d).to_csv(filename, sep=',', encoding='utf-8')
-
-
-def _process_predicate_marker(dictdb):
-
-    column_t = FeatureFactory().make('ColumnPredMarker', dictdb)
-    d = column_t.run()
-
-    target_dir = '/datasets_1.1/csvs/column_predmarker/'
+    target_dir = 'datasets_1.1/csvs/column_predmarker/'
     filename = '{:}{:}.csv'.format(target_dir, 'predicate_marker')
-    pd.DataFrame.from_dict(d).to_csv(filename, sep=',', encoding='utf-8')
+    if store:
+        pd.DataFrame.from_dict(d).to_csv(filename, sep=',', encoding='utf-8')
+
+    return d
 
 
 def _store_columns(columns_dict, columns, target_dir):
@@ -657,16 +681,14 @@ def _store_columns(columns_dict, columns, target_dir):
 
     return columns_dict
 
+
 def _store(d, target_name, target_dir):
         df = pd.DataFrame.from_dict(d)
         filename = '{:}{:}.csv'.format(target_dir, target_name)
         df.to_csv(filename, sep=',', encoding='utf-8', index=True)
 
 
-if __name__ == '__main__':
-    '''
-        Usage of FeatureFactory
-    '''
+def _process_conll():
     datasets = ('wTreino.conll', 'wValidacao.conll', 'Teste.conll')
     columns = ('ID', 'FORM', 'LEMMA', 'GPOS', 'MORF', 'DTREE', 'FUNC', 'CTREE', 'PRED', 'HEAD')
     lexicons = defaultdict(dict)
@@ -675,7 +697,7 @@ if __name__ == '__main__':
     i = 0
     p = 1  # predicate
     for dataset in datasets:
-        dataset_path = 'datasets_1.1/{:}'.format(dataset)
+        dataset_path = 'datasets_1.1/conll/{:}'.format(dataset)
         ind[dataset]['start'] = i
         with open(dataset_path, mode='r') as f:
             for line in f.readlines():
@@ -697,37 +719,96 @@ if __name__ == '__main__':
                     p += 1
 
         ind[dataset]['finish'] = i
-        i += 1
+
+    return db, lexicons, columns, ind
+
+
+def process(refresh=True):
+    '''
+        Processes all engineered features
+    '''
+    db, lexicons, columns, ind = _process_conll()
+
+    # Making column moving windpw around column
+    # Set of featured attributes 
+    windows = get_shifter(db, refresh)
+    db.update(windows)
+
+    return db, lexicons, columns, ind
+
+
+if __name__ == '__main__':
+    '''
+        Usage of FeatureFactory
+    '''
+    db, ind, columns = process()
+    # datasets = ('wTreino.conll', 'wValidacao.conll', 'Teste.conll')
+    # columns = ('ID', 'FORM', 'LEMMA', 'GPOS', 'MORF', 'DTREE', 'FUNC', 'CTREE', 'PRED', 'HEAD')
+    # lexicons = defaultdict(dict)
+    # db = defaultdict(dict)
+    # ind = defaultdict(dict)
+    # i = 0
+    # p = 1  # predicate
+    # for dataset in datasets:
+    #     dataset_path = 'datasets_1.1/conll/{:}'.format(dataset)
+    #     ind[dataset]['start'] = i
+    #     with open(dataset_path, mode='r') as f:
+    #         for line in f.readlines():
+    #             values = re.sub('\n', '', line).split('\t')
+    #             if len(values) == len(columns):
+    #                 for c, column in enumerate(columns):
+    #                     value = values[c].strip()
+    #                     if value not in lexicons[column]:
+    #                         l = len(lexicons[column])
+    #                         lexicons[column][value] = l
+    #                     else:
+    #                         l = lexicons[column][value]
+
+    #                     db[column][i] = value
+
+    #                 db['P'][i] = p
+    #                 i += 1
+    #             else:
+    #                 p += 1
+
+    #     ind[dataset]['finish'] = i
 
     # import code; code.interact(local=dict(globals(), **locals()))
     # Making column moving windpw around column    
-    columns_shift = ('FORM', 'LEMMA', 'FUNC', 'GPOS')
-    delta = 3
-    shifts = [d for d in range(-delta, delta + 1, 1) if d != 0]
-    windows = _process_shifter(db, columns_shift, shifts)
+    # columns_shift = ('FORM', 'LEMMA', 'FUNC', 'GPOS')
+    # delta = 3
+    # shifts = [d for d in range(-delta, delta + 1, 1) if d != 0]
+    # windows = _process_shifter(db, columns_shift, shifts)
 
     # db.update(result)
 
     # Making window around predicate
-    column_shifts_ctx_p = ('FUNC', 'GPOS', 'LEMMA', 'FORM')
+    # column_shifts_ctx_p = ('FUNC', 'GPOS', 'LEMMA', 'FORM')
     # columns = ['PRED']
-    delta = 3
-    shifts = [d for d in range(-delta, delta + 1, 1)]
-    contexts = _process_shifter_ctx_p(db, column_shifts_ctx_p, shifts)
+    # delta = 3
+    # shifts = [d for d in range(-delta, delta + 1, 1)]
+    # contexts = _process_shifter_ctx_p(db, column_shifts_ctx_p, shifts)
 
 
     # import code; code.interact(local=dict(globals(), **locals()))
     # Making DepTree Parser
-    # depfinder = FeatureFactory().make('ColumnDepTreeParser', dictdb)
-    # # columns = ['LEMMA']
-    # lemma_d = depfinder.define(['LEMMA']).run()
-    # _store(lemma_d, 'lemma', '/datasets_1.1/csvs/column_deptree/')
-    # gpos_d = depfinder.define(['GPOS']).run()
-    # _store(gpos_d, 'gpos', '/datasets_1.1/csvs/column_deptree/')
-    # func_d = depfinder.define(['FUNC']).run()
-    # _store(func_d, 'func', '/datasets_1.1/csvs/column_deptree/')
+    depfinder = FeatureFactory().make('ColumnDepTreeParser', db)
 
+    lemma_dependencies = depfinder.define(['LEMMA']).run()
+    import code; code.interact(local=dict(globals(), **locals()))
+    _store(lemma_dependencies, 'lemma', 'datasets_1.1/csvs/column_deptree/')
+    # depfinder = FeatureFactory().make('ColumnDepTreeParser', db)
+    # gpos_depentencies = depfinder.define(['GPOS']).run()
+    # _store(gpos_depentencies, 'gpos', 'datasets_1.1/csvs/column_deptree/')
+    # depfinder = FeatureFactory().make('ColumnDepTreeParser', db)
+    # func_dependencies = depfinder.define(['FUNC']).run()
+    # _store(func_dependencies, 'func', 'datasets_1.1/csvs/column_deptree/')
+
+    # import code; code.interact(local=dict(globals(), **locals()))
     # _process_t(dictdb)
-    # _process_predicate_marker(dictdb)
-    # _process_predmorph(dictdb)
-    # _process_passivevoice(dictdb)
+
+    # predmarker = _process_predicate_marker(db)
+    # predmorph = _process_predmorph(db)
+
+    # passivevoice = _process_passivevoice(db)
+    # import code; code.interact(local=dict(globals(), **locals()))

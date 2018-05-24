@@ -11,8 +11,95 @@
 import pickle
 import os
 import glob
-import svmlib.liblinearutil as lin
+# import .lib.liblinearutil as _util
+import models.lib as _util
+from numpy import isnan
 from collections import defaultdict
+
+
+def to_svm(db, lexicons, conll_columns):
+    '''
+        Converts conll dict into a problem
+
+        args:
+            db                  .: dict<str,dict<int, ?>> is a dict of dicts representing the conll db +
+                                    engineered attributes.
+                                    outer_keys: attribute column name
+                                    inner_keys: example index
+                                    inner_values : either a category or a value 
+
+            
+            lexicons            .: dict<str,dict<str, int>>  is a dict of dicts represering all possible column values
+                                    outer_keys: column_name in conll_column
+
+            conll_columns       .: tuple with original columns in .conll files
+
+        returns:            
+            inputs dict<int, dict<int,float>>
+
+            outputs dict<int, int>
+
+            bounds  dict<str, int>
+
+            columns list<str> with columns names
+
+    '''
+    # returns the dimension of a feature by approximate matching
+    def get_dim(searchcol):
+        for key in conll_columns:
+            if key in searchcol:  # approximate comparison
+                return len(lexicons[key])
+        return 1
+
+    def get_lex(searchcol):
+        for key in conll_columns:
+            if key in searchcol:  # approximate comparison
+                return key
+        return None
+
+
+    # normalize the database
+    columns = sorted([ col
+        for col in list(db.keys()) if col not in ('HEAD','P')])
+
+    bounds = {col: get_dim(col) for col in columns}
+
+    inputs = defaultdict(dict)
+    for idx in db['HEAD']:
+        lb = 1
+        for col in columns:
+            if col not in ['HEAD', 'P']:
+                dim = bounds[col]
+                if db[col][idx]:    # might be string or non zero numeric value
+                    if isinstance(db[col][idx], str):   # is a categorical column
+                        lexcol = get_lex(col)
+                        inputs[idx][lb + lexicons[lexcol][db[col][idx]]] = 1.0
+                    elif not isnan(db[col][idx]):
+                         inputs[idx][lb] = float(db[col][idx])
+                lb += dim
+
+    outputs = { idx: lexicons['HEAD'][val] for idx, val in db['HEAD'].items()}
+
+    return inputs, outputs, bounds, columns
+
+def to_file(filename, inputs, outputs, segmentation):
+
+    target_dir = 'datasets_1.1/svms/'
+    target_paths = []
+    for ds_type in segmentation:
+        target_path = '{:}{:}-{:}.svm'.format(target_dir, filename, ds_type)
+        start = segmentation[ds_type]['start']
+        finish = segmentation[ds_type]['finish']
+        with open(target_path, mode='w+') as f:
+            for idx in range(start, finish):            
+                _inputs = ['{:}:{:}'.format(c, val) for c, val in inputs[idx].items()]
+                _inputsstr = (' ').join(_inputs)
+                line = '{:} {:}\n'.format(outputs[idx], _inputsstr)
+                f.write(line)
+        target_paths.append(target_path)
+
+    return target_paths
+
 
 
 class SVM(object):
@@ -20,15 +107,15 @@ class SVM(object):
 
     @classmethod
     def read(cls, svmproblem_path):
-        Y, X = lin.svm_read_problem(svmproblem_path)
+        Y, X = _util.svm_read_problem(svmproblem_path)
         return Y, X
 
     def fit(self, X, Y, argstr):
-        self._svm = lin.train(Y, X, argstr)
+        self._svm = _util.train(Y, X, argstr)
 
     def predict(self, X, Y, i0=0):
         # return pred_labels, (ACC, MSE, SCC), pred_values
-        labels, metrics, values = lin.predict(Y, X, self._svm)
+        labels, metrics, values = _util.predict(Y, X, self._svm)
         index = range(i0, i0 + len(labels), 1)
         d = {
             'Yhat': dict(zip(index, labels)),
@@ -58,7 +145,7 @@ class _SVMIO(object):
 
     @classmethod
     def read(cls, svmproblem_path):
-        Y, X = lin.svm_read_problem(svmproblem_path)
+        Y, X = _util.svm_read_problem(svmproblem_path)
         return Y, X
 
     @classmethod
