@@ -11,11 +11,13 @@
 import pickle
 import os
 import glob
-import svmlib.liblinearutil as _util
+# import .lib.liblinearutil as _util
+import models.lib as _util
+import numpy as np
 from collections import defaultdict
 
 
-def to_svm(db, lexicons conll_columns):
+def to_svm(db, lexicons, conll_columns):
     '''
         Converts conll dict into a problem
 
@@ -26,6 +28,7 @@ def to_svm(db, lexicons conll_columns):
                                     inner_keys: example index
                                     inner_values : either a category or a value 
 
+            
             lexicons            .: dict<str,dict<str, int>>  is a dict of dicts represering all possible column values
                                     outer_keys: column_name in conll_column
 
@@ -48,8 +51,16 @@ def to_svm(db, lexicons conll_columns):
                 return len(lexicons[key])
         return 1
 
+    def get_lex(searchcol):
+        for key in conll_columns:
+            if key in searchcol:  # approximate comparison
+                return key
+        return None
+
+
     # normalize the database
-    columns = sorted(list(db.keys()))
+    columns = sorted([ col
+        for col in list(db.keys()) if col not in ('HEAD','P')])
 
     bounds = {col: get_dim(col) for col in columns}
 
@@ -57,11 +68,12 @@ def to_svm(db, lexicons conll_columns):
     for idx in db['HEAD']:
         lb = 1
         for col in columns:
-            if col not in ['HEAD']:
+            if col not in ['HEAD', 'P']:
                 dim = bounds[col]
-                if db[col][idx]:    # might be string or non zero numeric value
+                if db[col][idx] and not np.isnan(db[col][idx]):    # might be string or non zero numeric value
                     if isinstance(db[col][idx], str):   # is a categorical column
-                         inputs[idx][lb + lexicons[col][db[col][idx]]] = 1.0
+                        lexcol = get_lex(col)
+                        inputs[idx][lb + lexicons[lexcol][db[col][idx]]] = 1.0
                     else:
                          inputs[idx][lb] = float(db[col][idx])
                 lb += dim
@@ -70,8 +82,23 @@ def to_svm(db, lexicons conll_columns):
 
     return inputs, outputs, bounds, columns
 
+def to_file(filename, inputs, outputs, segmentation):
 
+    target_dir = 'datasets_1.1/svms/'
+    target_paths = []
+    for ds_type in segmentation:
+        target_path = '{:}{:}-{:}.svm'.format(target_dir, filename, ds_type)
+        start = segmentation[ds_type]['start']
+        finish = segmentation[ds_type]['finish']
+        for idx in range(start, finish):
+            with open(target_path, mode='w') as f:
+                _inputs = ['{:}:{:}'.format(c, val) for c, val in inputs[idx].items()]
+                _inputsstr = (' ').join(_inputs)
+                line = '{:} {:}\n'.format(outputs[idx], _inputsstr)
+                f.write(line)
+        target_paths.append(target_path)
 
+    return target_paths
 
 
 

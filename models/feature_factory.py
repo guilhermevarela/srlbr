@@ -564,7 +564,7 @@ class ColumnDepTreeParser(object):
         return d
 
 
-def get_shifter(refresh=True):
+def get_shifter(db, refresh=True):
     '''
         Builds rolling windows across tokens
 
@@ -576,7 +576,7 @@ def get_shifter(refresh=True):
         shifts = [d for d in range(-delta, delta + 1, 1) if d != 0]
         windows = _process_shifter(db, columns_shift, shifts)
     else:
-        windows = _load_shifter()
+        windows = _load_shifter(db, columns_shift)
 
     return windows
 
@@ -720,19 +720,21 @@ def _process_conll():
 
         ind[dataset]['finish'] = i
 
-    return db, ind, columns
+    return db, lexicons, columns, ind
 
 
 def process(refresh=True):
     '''
         Processes all engineered features
     '''
-    db, ind, columns = _process_conll()
+    db, lexicons, columns, ind = _process_conll()
 
     # Making column moving windpw around column
     # Set of featured attributes 
-    windows = get_shifter(refresh)    
+    windows = get_shifter(db, refresh)
     db.update(windows)
+
+    return db, lexicons, columns, ind
 
 
 if __name__ == '__main__':
