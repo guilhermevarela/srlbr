@@ -178,14 +178,11 @@ class ColumnShifterCTX_P(object):
         times = []
         predicate_d = _predicatedict(self.db)
         for time, proposition in self.db['P'].items():
-            try: 
-                predicate_time =  predicate_d[proposition]
-            except KeyError:
-                import code; code.interact(local=dict(globals(), **locals()))
+            predicate_time =  predicate_d[proposition]
 
             for col in self.columns:
                 for s in self.shifts:
-                    new_col = self.mapper[(s, col)]                    
+                    new_col = self.mapper[(s, col)]
                     if (predicate_time + s in self.db['P']) and\
                          (self.db['P'][predicate_time + s] == proposition):
                         self.dict_shifted[new_col][time] = self.db[col][predicate_time + s]
@@ -573,22 +570,28 @@ def _predicatedict(db):
     }
     return d
 
-def _process_passivevoice(dictdb):
 
+def _process_passivevoice(dictdb, store=True):
     pvoice_marker = FeatureFactory().make('ColumnPassiveVoice', dictdb)
-    target_dir = '/datasets_1.1/csvs/column_passivevoice/'
+    target_dir = 'datasets_1.1/csvs/column_passivevoice/'
     passivevoice = pvoice_marker.run()
 
-    _store(passivevoice, 'passive_voice', target_dir)
+    if store:
+        _store(passivevoice, 'passive_voice', target_dir)
+
+    return passivevoice
 
 
-def _process_predmorph(dictdb):
+def _process_predmorph(dictdb, store=True):
 
     morpher = FeatureFactory().make('ColumnPredMorph', dictdb)
-    target_dir = '/datasets_1.1/csvs/column_predmorph/'
+    target_dir = 'datasets_1.1/csvs/column_predmorph/'
     predmorph = morpher.run()
 
-    _store(predmorph['PRED_MORPH'], 'pred_morph', target_dir)
+    if store:
+        _store(predmorph['PRED_MORPH'], 'pred_morph', target_dir)
+
+    return predmorph
 
 
 def _process_shifter(dictdb, columns, shifts, store=True):
@@ -635,14 +638,17 @@ def _process_t(dictdb):
     pd.DataFrame.from_dict(d).to_csv(filename, sep=',', encoding='utf-8')
 
 
-def _process_predicate_marker(dictdb):
+def _process_predicate_marker(dictdb, store=True):
 
-    column_t = FeatureFactory().make('ColumnPredMarker', dictdb)
-    d = column_t.run()
+    column_predmarker = FeatureFactory().make('ColumnPredMarker', dictdb)
+    d = column_predmarker.run()
 
-    target_dir = '/datasets_1.1/csvs/column_predmarker/'
+    target_dir = 'datasets_1.1/csvs/column_predmarker/'
     filename = '{:}{:}.csv'.format(target_dir, 'predicate_marker')
-    pd.DataFrame.from_dict(d).to_csv(filename, sep=',', encoding='utf-8')
+    if store:
+        pd.DataFrame.from_dict(d).to_csv(filename, sep=',', encoding='utf-8')
+
+    return d
 
 
 def _store_columns(columns_dict, columns, target_dir):
@@ -701,26 +707,27 @@ if __name__ == '__main__':
 
     # import code; code.interact(local=dict(globals(), **locals()))
     # Making column moving windpw around column    
-    columns_shift = ('FORM', 'LEMMA', 'FUNC', 'GPOS')
-    delta = 3
-    shifts = [d for d in range(-delta, delta + 1, 1) if d != 0]
-    windows = _process_shifter(db, columns_shift, shifts)
+    # columns_shift = ('FORM', 'LEMMA', 'FUNC', 'GPOS')
+    # delta = 3
+    # shifts = [d for d in range(-delta, delta + 1, 1) if d != 0]
+    # windows = _process_shifter(db, columns_shift, shifts)
 
     # db.update(result)
 
     # Making window around predicate
-    column_shifts_ctx_p = ('FUNC', 'GPOS', 'LEMMA', 'FORM')
+    # column_shifts_ctx_p = ('FUNC', 'GPOS', 'LEMMA', 'FORM')
     # columns = ['PRED']
-    delta = 3
-    shifts = [d for d in range(-delta, delta + 1, 1)]
-    contexts = _process_shifter_ctx_p(db, column_shifts_ctx_p, shifts)
+    # delta = 3
+    # shifts = [d for d in range(-delta, delta + 1, 1)]
+    # contexts = _process_shifter_ctx_p(db, column_shifts_ctx_p, shifts)
 
 
     # import code; code.interact(local=dict(globals(), **locals()))
     # Making DepTree Parser
     # depfinder = FeatureFactory().make('ColumnDepTreeParser', dictdb)
-    # # columns = ['LEMMA']
+    # columns = ['LEMMA']
     # lemma_d = depfinder.define(['LEMMA']).run()
+
     # _store(lemma_d, 'lemma', '/datasets_1.1/csvs/column_deptree/')
     # gpos_d = depfinder.define(['GPOS']).run()
     # _store(gpos_d, 'gpos', '/datasets_1.1/csvs/column_deptree/')
@@ -728,6 +735,9 @@ if __name__ == '__main__':
     # _store(func_d, 'func', '/datasets_1.1/csvs/column_deptree/')
 
     # _process_t(dictdb)
-    # _process_predicate_marker(dictdb)
-    # _process_predmorph(dictdb)
-    # _process_passivevoice(dictdb)
+    
+    # predmarker = _process_predicate_marker(db)
+    # predmorph = _process_predmorph(db)
+
+    # passivevoice = _process_passivevoice(db)
+    import code; code.interact(local=dict(globals(), **locals()))
