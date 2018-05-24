@@ -11,8 +11,68 @@
 import pickle
 import os
 import glob
-import svmlib.liblinearutil as lin
+import svmlib.liblinearutil as _util
 from collections import defaultdict
+
+
+def to_svm(db, lexicons conll_columns):
+    '''
+        Converts conll dict into a problem
+
+        args:
+            db                  .: dict<str,dict<int, ?>> is a dict of dicts representing the conll db +
+                                    engineered attributes.
+                                    outer_keys: attribute column name
+                                    inner_keys: example index
+                                    inner_values : either a category or a value 
+
+            lexicons            .: dict<str,dict<str, int>>  is a dict of dicts represering all possible column values
+                                    outer_keys: column_name in conll_column
+
+            conll_columns       .: tuple with original columns in .conll files
+
+        returns:            
+            inputs dict<int, dict<int,float>>
+
+            outputs dict<int, int>
+
+            bounds  dict<str, int>
+
+            columns list<str> with columns names
+
+    '''
+    # returns the dimension of a feature by approximate matching
+    def get_dim(searchcol):
+        for key in conll_columns:
+            if key in searchcol:  # approximate comparison
+                return len(lexicons[key])
+        return 1
+
+    # normalize the database
+    columns = sorted(list(db.keys()))
+
+    bounds = {col: get_dim(col) for col in columns}
+
+    inputs = defaultdict(dict)
+    for idx in db['HEAD']:
+        lb = 1
+        for col in columns:
+            if col not in ['HEAD']:
+                dim = bounds[col]
+                if db[col][idx]:    # might be string or non zero numeric value
+                    if isinstance(db[col][idx], str):   # is a categorical column
+                         inputs[idx][lb + lexicons[col][db[col][idx]]] = 1.0
+                    else:
+                         inputs[idx][lb] = float(db[col][idx])
+                lb += dim
+
+    outputs = db['HEAD']
+
+    return inputs, outputs, bounds, columns
+
+
+
+
 
 
 class SVM(object):
@@ -20,15 +80,15 @@ class SVM(object):
 
     @classmethod
     def read(cls, svmproblem_path):
-        Y, X = lin.svm_read_problem(svmproblem_path)
+        Y, X = _util.svm_read_problem(svmproblem_path)
         return Y, X
 
     def fit(self, X, Y, argstr):
-        self._svm = lin.train(Y, X, argstr)
+        self._svm = _util.train(Y, X, argstr)
 
     def predict(self, X, Y, i0=0):
         # return pred_labels, (ACC, MSE, SCC), pred_values
-        labels, metrics, values = lin.predict(Y, X, self._svm)
+        labels, metrics, values = _util.predict(Y, X, self._svm)
         index = range(i0, i0 + len(labels), 1)
         d = {
             'Yhat': dict(zip(index, labels)),
@@ -58,7 +118,7 @@ class _SVMIO(object):
 
     @classmethod
     def read(cls, svmproblem_path):
-        Y, X = lin.svm_read_problem(svmproblem_path)
+        Y, X = _util.svm_read_problem(svmproblem_path)
         return Y, X
 
     @classmethod
