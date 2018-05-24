@@ -13,7 +13,7 @@ import os
 import glob
 # import .lib.liblinearutil as _util
 import models.lib as _util
-import numpy as np
+from numpy import isnan
 from collections import defaultdict
 
 
@@ -70,15 +70,15 @@ def to_svm(db, lexicons, conll_columns):
         for col in columns:
             if col not in ['HEAD', 'P']:
                 dim = bounds[col]
-                if db[col][idx] and not np.isnan(db[col][idx]):    # might be string or non zero numeric value
+                if db[col][idx]:    # might be string or non zero numeric value
                     if isinstance(db[col][idx], str):   # is a categorical column
                         lexcol = get_lex(col)
                         inputs[idx][lb + lexicons[lexcol][db[col][idx]]] = 1.0
-                    else:
+                    elif not isnan(db[col][idx]):
                          inputs[idx][lb] = float(db[col][idx])
                 lb += dim
 
-    outputs = db['HEAD']
+    outputs = { idx: lexicons['HEAD'][val] for idx, val in db['HEAD'].items()}
 
     return inputs, outputs, bounds, columns
 
@@ -90,8 +90,8 @@ def to_file(filename, inputs, outputs, segmentation):
         target_path = '{:}{:}-{:}.svm'.format(target_dir, filename, ds_type)
         start = segmentation[ds_type]['start']
         finish = segmentation[ds_type]['finish']
-        for idx in range(start, finish):
-            with open(target_path, mode='w') as f:
+        with open(target_path, mode='w+') as f:
+            for idx in range(start, finish):            
                 _inputs = ['{:}:{:}'.format(c, val) for c, val in inputs[idx].items()]
                 _inputsstr = (' ').join(_inputs)
                 line = '{:} {:}\n'.format(outputs[idx], _inputsstr)
