@@ -13,12 +13,7 @@
         SOFTWARE: http://www.lsi.upc.edu/~srlconll/soft.html
 
 '''
-
-# import os
 import subprocess
-# import string
-# import pandas as pd
-# import pickle
 import utils
 
 
@@ -104,48 +99,6 @@ class Evaluator(object):
         with open(target_path, 'w+') as f:
             f.write(self.txt)
 
-
-    # def evaluate_fromconllfile(self, target_path):
-    #     '''
-    #         Opens up a conll file and parses it
-
-    #         args:
-    #             target_path .: string filename + dir 
-    #     '''
-    #     self._refresh()
-
-    #     with open(target_path, 'r') as f: 
-    #         self.txt = f.read()
-    #     f.close()
-
-    #     self._parse(self.txt)
-
-    # def evaluate_fromliblinear(self, target_path, mapper, target_column='T'):
-    #     '''
-    #         Opens up a conll file and parses it
-
-    #         args:
-    #             target_path .: string filename + dir 
-    #     '''
-    #     self._refresh()
-
-    #     with open(target_path, 'rb') as f:
-    #         d = pickle.load(f)
-    #     f.close()
-
-
-    #     if len(d) != len(self.ARG):
-    #         raise ValueError('number of predictions must match targets')
-    #     else:
-    #         self.target_dir = '/'.join(target_path.split('/')[:-1])
-    #         self.target_dir += '/'
-    #         if target_column in ('T'):
-    #             Y = mapper.define(d, 'IDX').map()
-    #         else:
-    #             Y = mapper.define(d, target_column).map()
-
-    #         self.evaluate(Y, store=True)
-
     def _refresh(self):
         self.num_propositions = -1
         self.num_sentences = -1
@@ -155,20 +108,6 @@ class Evaluator(object):
         self.f1 = -1
         self.precision = -1
         self.recall = -1
-
-    # def _conll_format(self, Y):
-    #     df_eval = conll_with_dicts(self.S, self.P, self.PRED, Y, True)
-    #     df_gold = conll_with_dicts(self.S, self.P, self.PRED, self.ARG, True)
-    #     return df_eval, df_gold
-
-    # def _store(self, df_eval, df_gold):
-    #     eval_path = self.target_dir + '{:}eval.txt'.format(self.ds_type)
-    #     df_eval.to_csv(eval_path, sep='\t', index=False, header=False)
-
-
-    #     gold_path = self.target_dir + '{:}gold.txt'.format(self.ds_type)
-    #     df_gold.to_csv(gold_path, sep ='\t', index=False, header=False)
-    #     return eval_path, gold_path
 
     def _parse(self, txt):
         '''
@@ -221,75 +160,3 @@ class Evaluator(object):
             if (i == 6):
                 self.precision, self.recall, self.f1 = map(float, line.split()[-3:])
                 break
-
-
-# def conll_with_dicts(S, P, PRED, Y, to_frame=True):
-#   '''
-#     Converts a dataset to conll format - promotes kind of an horizontal stack,
-#         in which we add each proposition within the sentence, as a new column or key
-    
-#     args:
-#         S           .:  dict<int,int> keys are the index, values are sentences
-#         P       .:  dict<int,int> keys are the index, values are propositions
-#         PRED    .:  dict<int,str> keys are the index, values are verbs/ predicates
-#         Y       .:  dict<int,str> keys are the index, values are Y is 'ARG', 'T', 'ARG'
-#             to_frame .: bool if true converts to the output to dataframe
-#         returns:
-
-#             d_conll .: dict<str,dict<int,str>> outer keys are columns 'PRED', 'ARG0', 'ARG1', ..., 'ARGN'
-#                         inner keys are new indexes ( over the sentences)
-#                         values are 'PRED', 'ARG0', 'ARG1', ..., 'ARGN'
-#                         or dataframe where columns are db columns and rows are tokens with sequence
-
-
-#         refs: 
-#             http://localhost:8888/notebooks/05-evaluations_conll.ipynb              
-#   '''
-#   d_conll = {}
-#   index1 = 0
-#   index0 = 0 # marks the beginning of a new SENTENCE
-#   prev_p = -1
-#   prev_s = -1
-#   pps = -1 #propostion per sentence  
-#   first = True
-#   for index, s in S.items():
-#     p = P[index]
-#     pred = PRED[index]
-#     y = Y[index]
-#     if p != prev_p and s != prev_s: #New Sentence and new proposition
-#         pps = 0  # fills ARG0  
-#         # conll format .: skip a row for each new sentence after the first
-#         if not(first):
-#             for colname in d_conll:
-#                 d_conll[colname][index1]=''
-#             index1 += 1
-#         index0 = index1 #Stores the beginning of the sentence                
-#     elif p != prev_p:#New proposition
-#         pps+=1  #  updates column to write
-#         index1=index0 # back to the first key
-        
-#     argkey = 'ARG{:}'.format(pps)    
-#     if not(argkey in d_conll):
-#         if first:        
-#             d_conll['PRED']={}
-#             first=False
-#         d_conll[argkey]={}
-
-
-#     #updates predicate if index1 is unseen 
-#     if not(index1 in d_conll['PRED']) or not(pred =='-'):
-#         d_conll['PRED'][index1]=pred
-        
-#     d_conll[argkey][index1]=y #            
-#     prev_p=p
-#     prev_s=s    
-#     index1+=1
-  
-#   result= d_conll
-#   if (to_frame):
-#     result = pd.DataFrame.from_dict(d_conll , orient='columns') 
-#     l= len(d_conll)
-#     usecols= ['PRED']  + ['ARG{:}'.format(i) for i in range(l-1)]# reorder columns to match format
-#     result= result[usecols]
-#   return result 
-
