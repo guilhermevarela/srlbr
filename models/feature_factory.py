@@ -603,6 +603,34 @@ def _process_shifter(dictdb, columns, shifts, store=True):
     return shifted
 
 
+def get_ctx_p(db, refresh=True):
+    '''
+        Builds rolling windows across tokens
+
+
+    '''
+    if refresh:
+        column_shifts_ctx_p = ('FUNC', 'GPOS', 'LEMMA', 'FORM')
+        columns = ['PRED']
+        delta = 3
+        shifts = [d for d in range(-delta, delta + 1, 1)]
+        contexts = _process_shifter_ctx_p(db, column_shifts_ctx_p, shifts)
+    else:
+        contexts = _load_ctx_p(db, column_shifts_ctx_p)
+
+    return contexts
+
+
+def _load_ctx_p(dictdb, columns):
+    target_dir = 'datasets_1.1/csvs/column_shifts_ctx_p/'
+    ctx_p = defaultdict(dict)
+    for col in columns:
+        target_path = '{:}{:}.csv'.format(target_dir, col.lower())
+        _df = pd.read_csv(target_path, encoding='utf-8', index_col=0)
+        ctx_p.update(_df.to_dict())
+    return ctx_p
+
+
 def _predicatedict(db):
     d = {
         db['P'][time]: time
@@ -733,6 +761,10 @@ def process(refresh=True):
     # Set of featured attributes 
     windows = get_shifter(db, refresh)
     db.update(windows)
+
+    # Making tokens around predicate available
+    contexts = get_ctx_p(db, refresh=True)
+    db.update(contexts)
 
     return db, lexicons, columns, ind
 
