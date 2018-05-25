@@ -9,9 +9,11 @@ sys.path.append('../datasets_1.1')
 from collections import OrderedDict, defaultdict, deque
 
 import pandas as pd
-import yaml
 import networkx as nx
-import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('TkAgg')
+from matplotlib import pyplot as plt
+
 
 import re
 
