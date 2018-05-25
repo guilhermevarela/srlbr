@@ -402,6 +402,7 @@ class ColumnDepTreeParser(object):
 
             if process:
                 G, root = self._build(lb, ub)
+                self._dtreeparse_ancestors(G, root, lb, ub)
                 for i in range(lb, ub):
                     # Find children, parent and grand-parent
                     result = self._make_lookupnodes()
@@ -414,14 +415,14 @@ class ColumnDepTreeParser(object):
                                 self.kernel[new_key][i] = None
                             else:
                                 self.kernel[new_key][i] = self.db[col][nodeidx]
-
-                    # Find path to predicate
                     self._refresh(G)
+                    # pred = predicate_d[prev_prop]
+                    # self._dtreeparse_paths(G, pred, lb, ub)
+                    # Find path to predicate                    
                     result = {}
                     q = deque(list())
                     pred = predicate_d[prev_prop]
                     self._dfs_path(G, i, pred, q, result)
-
                     for key, nodeidx in result.items():
                         for col in self.columns:
                             if col in ('GPOS', 'FUNC'):
@@ -431,14 +432,102 @@ class ColumnDepTreeParser(object):
                                     self.kernel[new_key][i] = None
                                 else:
                                     self.kernel[new_key][i] = self.db[col][nodeidx]
-
                     self._refresh(G)
 
             process = False
             prev_prop = proposition
             prev_time = time
 
+        # PROCESS LAST PROPOSITION
+        lb = ub 
+        ub = prev_time + 1
+        G, root = self._build(lb, ub)
+        # self._dtreeparse_ancestors(G, root, lb, ub)
+        # pred = predicate_d[prev_prop]
+        # self._dtreeparse_paths(G, pred, lb, ub)        
+        for i in range(lb, ub):
+            # Find children, parent and grand-parent
+            result = self._make_lookupnodes()
+            q = deque(list())
+            self._dfs_lookup(G, root, i, q, result)
+            for key, nodeidx in result.items():
+                for col in self.columns:
+                    new_key = '{:}_{:}'.format(col, key).upper()
+                    if nodeidx is None:
+                        self.kernel[new_key][i] = None
+                    else:
+                        self.kernel[new_key][i] = self.db[col][nodeidx]
+            self._refresh(G)
+
+            # Find path to predicate
+            result = {}
+            q = deque(list())
+            pred = predicate_d[prev_prop]
+            self._dfs_path(G, i, pred, q, result)
+            for key, nodeidx in result.items():
+                for col in self.columns:
+                    if col in ('GPOS', 'FUNC'):
+                        _key = key.split('_')[0]
+                        new_key = '{:}_{:}'.format(col, _key).upper()
+                        if nodeidx is None:
+                            self.kernel[new_key][i] = None
+                        else:
+                            self.kernel[new_key][i] = self.db[col][nodeidx]
+            self._refresh(G)
+
         return self.kernel
+
+    def _dtreeparse_ancestors(self, G, root, lb, ub):
+        '''
+        Finds first 3 children, parent and grand-parent
+
+        args:
+            G     .: Graph build from DTree
+            root  .: root of the tree
+            lb    .: index of the first node
+            ub    .: index of the last node
+
+        returns:
+        '''
+        for i in range(lb, ub):
+            result = self._make_lookupnodes()
+            q = deque(list())
+            self._dfs_lookup(G, root, i, q, result)
+            for key, nodeidx in result.items():
+                for col in self.columns:
+                    new_key = '{:}_{:}'.format(col, key).upper()
+                    if nodeidx is None:
+                        self.kernel[new_key][i] = None
+                    else:
+                        self.kernel[new_key][i] = self.db[col][nodeidx]
+        self._refresh(G)
+
+    def _dtreeparse_paths(self, G, pred, lb, ub):
+        '''
+        Finds first 3 children, parent and grand-parent
+
+        args:
+            G     .: Graph build from DTree
+            pred  .: predicate index
+            lb    .: index of the first node
+            ub    .: index of the last node
+
+        returns:
+        '''
+        for i in range(lb, ub):
+            result = {}
+            q = deque(list())
+            self._dfs_path(G, i, pred, q, result)
+            for key, nodeidx in result.items():
+                for col in self.columns:
+                    if col in ('GPOS', 'FUNC'):
+                        _key = key.split('_')[0]
+                        new_key = '{:}_{:}'.format(col, _key).upper()
+                        if nodeidx is None:
+                            self.kernel[new_key][i] = None
+                        else:
+                            self.kernel[new_key][i] = self.db[col][nodeidx]
+        self._refresh(G)
 
     def _make_lookupnodes(self):
         _list_keys = ['parent', 'grand_parent', 'child_1', 'child_2', 'child_3']
@@ -644,6 +733,41 @@ def get_ctx_p(db, refresh=True):
     return contexts
 
 
+def get_dtree(db, refresh):
+    '''
+        Builds dtree attributes
+        for golden standard columns ('FUNC', 'GPOS', 'LEMMA', 'FORM')
+        (BELTRAO, 2016) pg 50
+ 
+        args:
+            db              .: dict<inner_keys, dict<outer_keys, ?>>
+                                inner_keys  .: str columns which should contain all base conll attributes
+                                outer_keys  .: int token id
+                                ?           .: either text or numerical value
+
+            refresh           .: boolean if true recompute attributes and store
+        returns:
+            dtree_features    .: features
+    '''
+    columns = ('FUNC', 'GPOS', 'LEMMA', 'FORM')
+    if refresh:
+         dtree_features = _process_dtree(db, columns, store=True)
+    else:
+        raise ImplementationError('Only refresh options available')
+
+    return dtree_features
+
+def _process_dtree(db, columns, store=True):
+
+    dtree = FeatureFactory().make('ColumnDepTreeParser', db)
+    target_dir = 'datasets_1.1/csvs/column_deptree/'
+    dtree_features = dtree.define(columns).run()
+
+    if store:
+        _store_columns(dtree_features, columns, target_dir)
+
+    return dtree_features
+
 def _process_shifter_ctx_p(db, columns, shifts, store=True):
 
     shifter = FeatureFactory().make('ColumnShifterCTX_P', db)
@@ -816,12 +940,16 @@ def process(refresh=True):
 
     # Making column moving windpw around column
     # Set of featured attributes 
-    windows = get_shifter(db, refresh)
-    db.update(windows)
+    # windows = get_shifter(db, refresh)
+    # db.update(windows)
 
     # Making tokens around predicate available
-    contexts = get_ctx_p(db, refresh)
-    db.update(contexts)
+    # contexts = get_ctx_p(db, refresh)
+    # db.update(contexts)
+
+    # Dtree parsing
+    deptree = get_dtree(db, refresh)
+    db.update(deptree)
 
     return db, lexicons, columns, ind
 
