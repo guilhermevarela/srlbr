@@ -568,9 +568,20 @@ class ColumnDepTreeParser(object):
 
 def get_shifter(db, refresh=True):
     '''
-        Builds rolling windows across tokens
+        Builds lag and lead attributes around current token
+        for golden standard columns ('FORM', 'LEMMA', 'FUNC', 'GPOS')
+        (BELTRAO, 2016) pg 47
+        
+        args:
+        db          .: dict<inner_keys, dict<outer_keys, ?>>
+                        inner_keys  .: str columns which should contain all base conll attributes
+                     
+                        outer_keys  .: int token id
+                        ?           .: either text or numerical value
 
-
+        refresh    .: boolean if true recompute attributes and store
+        returns:
+        windows    .: 
     '''
     columns_shift = ('FORM', 'LEMMA', 'FUNC', 'GPOS')
     if refresh:
@@ -607,9 +618,19 @@ def _process_shifter(dictdb, columns, shifts, store=True):
 
 def get_ctx_p(db, refresh=True):
     '''
-        Builds rolling windows across tokens
+        Builds lag and lead attributes (context) around PREDICATE
+        for golden standard columns ('FUNC', 'GPOS', 'LEMMA', 'FORM')
+        (BELTRAO, 2016) pg 47
+ 
+        args:
+        db          .: dict<inner_keys, dict<outer_keys, ?>>
+                        inner_keys  .: str columns which should contain all base conll attributes                
+                        outer_keys  .: int token id
+                        ?           .: either text or numerical value
 
-
+        refresh    .: boolean if true recompute attributes and store
+        returns:
+        windows    .: 
     '''
     if refresh:
         column_shifts_ctx_p = ('FUNC', 'GPOS', 'LEMMA', 'FORM')
@@ -617,10 +638,28 @@ def get_ctx_p(db, refresh=True):
         delta = 3
         shifts = [d for d in range(-delta, delta + 1, 1)]
         contexts = _process_shifter_ctx_p(db, column_shifts_ctx_p, shifts)
+        passive_voice = _process_passivevoice(db)
+        predmorph = _process_predmorph(db)
+
     else:
         contexts = _load_ctx_p(db, column_shifts_ctx_p)
+        # passive_voice = _load_passivevoice(db)
+        # predmorph = _load_predmorph(db)
+
 
     return contexts
+
+
+def _process_shifter_ctx_p(db, columns, shifts, store=True):
+
+    shifter = FeatureFactory().make('ColumnShifterCTX_P', db)
+    target_dir = 'datasets_1.1/csvs/column_shifts_ctx_p/'
+    shifted = shifter.define(columns, shifts).run()
+
+    if store:
+        _store_columns(shifted, columns, target_dir)
+
+    return shifted
 
 
 def _load_ctx_p(dictdb, columns):
@@ -662,19 +701,6 @@ def _process_predmorph(dictdb, store=True):
         _store(predmorph['PRED_MORPH'], 'pred_morph', target_dir)
 
     return predmorph
-
-
-def _process_shifter_ctx_p(db, columns, shifts, store=True):
-
-    shifter = FeatureFactory().make('ColumnShifterCTX_P', db)
-    target_dir = 'datasets_1.1/csvs/column_shifts_ctx_p/'
-    shifted = shifter.define(columns, shifts).run()
-
-    if store:
-        _store_columns(shifted, columns, target_dir)
-
-    return shifted
-
 
 def _process_predicate_dist(dictdb):
 
