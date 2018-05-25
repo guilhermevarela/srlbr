@@ -9,9 +9,8 @@ sys.path.append('../datasets_1.1')
 from collections import OrderedDict, defaultdict, deque
 
 import pandas as pd
-import yaml
 import networkx as nx
-import matplotlib.pyplot as plt
+
 
 import re
 
@@ -202,28 +201,6 @@ class ColumnPredDist(object):
     def __init__(self, dict_db):
         self.db = dict_db
 
-    # Columns over which we want to perform the shifting
-    def define(self):
-        '''
-            Defines with columns will be effectively shifted and by what amount
-
-            args:
-                columns .: list<str> column names that will be shifted
-
-                shifts .: list<int> of size m holding integers, negative numbers are delays
-                    positive numbers are leads
-
-                new_columns .: list<str> of size n holding new column names if none 
-                                one name will be generated
-
-            returns:
-                column_shifter .: object<ColumnShifter> an instance of column shifter
-
-        '''
-        if not '(V*)' in set(self.db['ARG'].values()):
-            raise ValueError('(V*) not in ARG')
-
-        return self
 
     def run(self):
         '''
@@ -240,8 +217,10 @@ class ColumnPredDist(object):
         for time, proposition in self.db['P'].items():
             predicate_time = predicate_d[proposition]
 
+
             self.preddist['PRED_DIST'][time] = predicate_time - time
 
+        
         return self.preddist
 
 
@@ -564,11 +543,30 @@ class ColumnDepTreeParser(object):
         return d
 
 
+def _predicatedict(db):
+    d = {
+        db['P'][time]: time
+        for time, pred in db['PRED'].items() if (pred != '-')
+    }
+    return d
+
+
 def get_shifter(db, refresh=True):
     '''
-        Builds rolling windows across tokens
+        Builds lag and lead attributes around current token
+        for golden standard columns ('FORM', 'LEMMA', 'FUNC', 'GPOS')
+        (BELTRAO, 2016) pg 47
 
+        args:
+        db          .: dict<inner_keys, dict<outer_keys, ?>>
+                        inner_keys  .: str columns which should contain all base conll attributes
 
+                        outer_keys  .: int token id
+                        ?           .: either text or numerical value
+
+        refresh    .: boolean if true recompute attributes and store
+        returns:
+        windows    .: 
     '''
     columns_shift = ('FORM', 'LEMMA', 'FUNC', 'GPOS')
     if refresh:
@@ -603,35 +601,47 @@ def _process_shifter(dictdb, columns, shifts, store=True):
     return shifted
 
 
-def _predicatedict(db):
-    d = {
-        db['P'][time]: time
-        for time, pred in db['PRED'].items() if (pred != '-')
-    }
-    return d
+def get_ctx_p(db, refresh=True):
+    '''
+        Builds lag and lead attributes (context) around PREDICATE
+        for golden standard columns ('FUNC', 'GPOS', 'LEMMA', 'FORM')
+        (BELTRAO, 2016) pg 47
+ 
+        args:
+            db          .: dict<inner_keys, dict<outer_keys, ?>>
+                            inner_keys  .: str columns which should contain all base conll attributes
+                            outer_keys  .: int token id
+                            ?           .: either text or numerical value
 
+            refresh    .: boolean if true recompute attributes and store
+        returns:
+            context    .: columns close to verb
+    '''
+    column_shifts_ctx_p = ('FUNC', 'GPOS', 'LEMMA', 'FORM')
+    if refresh:
+        delta = 3
+        shifts = [d for d in range(-delta, delta + 1, 1)]
+        contexts = _process_shifter_ctx_p(db, column_shifts_ctx_p, shifts)
 
-def _process_passivevoice(dictdb, store=True):
-    pvoice_marker = FeatureFactory().make('ColumnPassiveVoice', dictdb)
-    target_dir = 'datasets_1.1/csvs/column_passivevoice/'
-    passivevoice = pvoice_marker.run()
+        preddist = _process_predicate_dist(db)
+        passive_voice = _process_passivevoice(db)
+        predmorph = _process_predmorph(db)
+        predmarker = _process_predicate_marker(db)
 
-    if store:
-        _store(passivevoice, 'passive_voice', target_dir)
+    else:
+        contexts = _load_ctx_p(column_shifts_ctx_p)
 
-    return passivevoice
+        preddist = _load_predicate_dist()
+        passive_voice = _load_passivevoice()
+        predmorph = _load_predmorph()
+        predmarker = _load_predicate_marker()
 
+    contexts.update(preddist)
+    contexts.update(passive_voice)
+    contexts.update(predmorph)
+    contexts.update(predmarker)
 
-def _process_predmorph(dictdb, store=True):
-
-    morpher = FeatureFactory().make('ColumnPredMorph', dictdb)
-    target_dir = 'datasets_1.1/csvs/column_predmorph/'
-    predmorph = morpher.run()
-
-    if store:
-        _store(predmorph['PRED_MORPH'], 'pred_morph', target_dir)
-
-    return predmorph
+    return contexts
 
 
 def _process_shifter_ctx_p(db, columns, shifts, store=True):
@@ -646,14 +656,81 @@ def _process_shifter_ctx_p(db, columns, shifts, store=True):
     return shifted
 
 
+def _load_ctx_p(columns):
+    target_dir = 'datasets_1.1/csvs/column_shifts_ctx_p/'
+    ctx_p = defaultdict(dict)
+    for col in columns:
+        target_path = '{:}{:}.csv'.format(target_dir, col.lower())
+        _df = pd.read_csv(target_path, encoding='utf-8', index_col=0)
+        ctx_p.update(_df.to_dict())
+    return ctx_p
+
+
+def _process_passivevoice(dictdb, store=True):
+    pvoice_marker = FeatureFactory().make('ColumnPassiveVoice', dictdb)
+    target_dir = 'datasets_1.1/csvs/column_passivevoice/'
+    passivevoice = pvoice_marker.run()
+
+    if store:
+        _store(passivevoice, 'passive_voice', target_dir)
+
+    return passivevoice
+
+
+def _load_passivevoice():
+    target_dir = 'datasets_1.1/csvs/column_passivevoice/'
+    passive_voice = defaultdict(dict)
+
+    target_path = '{:}passive_voice.csv'.format(target_dir)
+    _df = pd.read_csv(target_path, encoding='utf-8', index_col=0)
+    passive_voice.update(_df.to_dict())
+
+    return passive_voice
+
+
+def _process_predmorph(dictdb, store=True):
+
+    morpher = FeatureFactory().make('ColumnPredMorph', dictdb)
+    target_dir = 'datasets_1.1/csvs/column_predmorph/'
+    predmorph = morpher.run()
+
+    if store:
+        _store(predmorph['PRED_MORPH'], 'pred_morph', target_dir)
+
+    return predmorph['PRED_MORPH']
+
+
+def _load_predmorph():
+    target_dir = 'datasets_1.1/csvs/column_predmorph/'
+    predmorph = defaultdict(dict)
+
+    target_path = '{:}pred_morph.csv'.format(target_dir)
+    _df = pd.read_csv(target_path, encoding='utf-8', index_col=0)
+    predmorph.update(_df.to_dict())
+
+    return predmorph
+
+
 def _process_predicate_dist(dictdb):
 
     pred_dist = FeatureFactory().make('ColumnPredDist', dictdb)
-    d = pred_dist.define().run()
+    d = pred_dist.run()
 
-    target_dir = '/datasets_1.1/csvs/column_preddist/'
+    target_dir = 'datasets_1.1/csvs/column_preddist/'
     filename = '{:}{:}.csv'.format(target_dir, 'predicate_distance')
     pd.DataFrame.from_dict(d).to_csv(filename, sep=',', encoding='utf-8')
+
+    return d
+
+
+def _load_predicate_dist():
+    target_dir = 'datasets_1.1/csvs/column_preddist/'
+    predicate_dist = defaultdict(dict)
+
+    target_path = '{:}predicate_distance.csv'.format(target_dir)
+    _df = pd.read_csv(target_path, encoding='utf-8', index_col=0)
+    predicate_dist.update(_df.to_dict())
+    return predicate_dist
 
 
 def _process_predicate_marker(dictdb, store=True):
@@ -669,6 +746,16 @@ def _process_predicate_marker(dictdb, store=True):
     return d
 
 
+def _load_predicate_marker():
+    target_dir = 'datasets_1.1/csvs/column_predmarker/'
+    predicate_marker = defaultdict(dict)
+
+    target_path = '{:}predicate_marker.csv'.format(target_dir)
+    _df = pd.read_csv(target_path, encoding='utf-8', index_col=0)
+    predicate_marker.update(_df.to_dict())
+    return predicate_marker
+
+
 def _store_columns(columns_dict, columns, target_dir):
     for col in columns:
         d = {new_col: columns_dict[new_col]
@@ -677,8 +764,6 @@ def _store_columns(columns_dict, columns, target_dir):
         df = pd.DataFrame.from_dict(d)
         filename = '{:}{:}.csv'.format(target_dir, col.lower())
         df.to_csv(filename, sep=',', encoding='utf-8')
-
-
     return columns_dict
 
 
@@ -733,6 +818,10 @@ def process(refresh=True):
     # Set of featured attributes 
     windows = get_shifter(db, refresh)
     db.update(windows)
+
+    # Making tokens around predicate available
+    contexts = get_ctx_p(db, refresh)
+    db.update(contexts)
 
     return db, lexicons, columns, ind
 

@@ -3,7 +3,7 @@ from models import process, to_svm, SVM, Evaluator
 
 if __name__ == '__main__':
     conllcols = ('ID', 'FORM', 'LEMMA', 'GPOS', 'MORF', 'DTREE', 'FUNC', 'CTREE', 'PRED', 'HEAD')
-    target_dir = 'datasets_1.1/rolling_window'
+    target_dir = 'datasets_1.1/contexts'
     db, lexicons, columns, ind = process(refresh=False)
 
     evaluator = Evaluator(db, lexicons, columns, ind, target_dir)
