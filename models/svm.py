@@ -82,26 +82,6 @@ def to_svm(db, lexicons, conll_columns):
 
     return inputs, outputs, bounds, columns
 
-def to_file(filename, inputs, outputs, segmentation):
-
-    target_dir = 'datasets_1.1/svms/'
-    target_paths = []
-    for ds_type in segmentation:
-        target_path = '{:}{:}-{:}.svm'.format(target_dir, filename, ds_type)
-        start = segmentation[ds_type]['start']
-        finish = segmentation[ds_type]['finish']
-        with open(target_path, mode='w+') as f:
-            for idx in range(start, finish):            
-                _inputs = ['{:}:{:}'.format(c, val) for c, val in inputs[idx].items()]
-                _inputsstr = (' ').join(_inputs)
-                line = '{:} {:}\n'.format(outputs[idx], _inputsstr)
-                f.write(line)
-        target_paths.append(target_path)
-
-    return target_paths
-
-
-
 class SVM(object):
     _svm = None
 
