@@ -14,7 +14,7 @@
 
 '''
 import subprocess
-import utils
+import models.utils as utils
 
 
 PEARL_SRLEVAL_PATH = './srlconll-1.1/bin/srl-eval.pl'
