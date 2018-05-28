@@ -61,9 +61,30 @@ enginnering.
 |  **AM-TMP** | Temporal.                                |
 
 ## FEATURE ENGINEERING (BELTRAO, 2016)
-### Window features
-### Context features
-### Dtree featires
+    There are 5 groups of features described on the dissertation, 4 of which are implemented as follows:
+
+### Golden Standard Features
+    All golden standard features except **ARG**.
+
+### Window Features
+    Lead and lag features around the token.
+
+| **Attribute**           | **Description**                           |
+|-------------------------|-------------------------------------------|
+| _LeftForm 1,2, and 3_   | _FORM_ from the 3 _tokens_ to the left.   |
+| _RightForm 1,2 and 3_   | _FORM_ from the 3 _tokens_ to the right.  |
+| _LeftFunc 1,2 and 3_    | _FUNC_ from the 3 _tokens_ to the left.   |
+| _RightFunc 1,2 and 3_   | _FUNC_ from the 3 _tokens_ to the right.  |
+| _LeftLemma 1,2 and 3_   | _LEMMA_ from the 3 _tokens_ to the left.  |
+| _RightLemma 1,2, and 3_ | _LEMMA_ from the 3 _tokens_ to the right. |
+| _LeftGPOS 1,2 and 3_    | _GPOS_ from the 3 _tokens_ to the left.   |
+| _RightGPOS 1,2 and 3_   | _GPOS_ from the 3 _tokens_ to the right.  |    
+
+### Context Features
+    Lead and lag features around predicate.
+
+### Dependency Tree Features
+     Token depentencies and path to predicate.
 
 ## SETUP
 ### Project
