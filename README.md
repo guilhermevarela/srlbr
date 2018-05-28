@@ -1,5 +1,12 @@
 # SEMANTIC ROLE LABELING BR
-## CLASSICAL APPROACH (AN EXAMPLE)
+Semantic Role Labeling is a task within the domain of natural language processing, that attempts to answer
+who, did what, to whom given a sentence. This repository is a partial implementation of a masters dissertation,
+(BELTRAO, 2016) that uses Propbank Br v1.1 as the golden set, Liblinear implemention for Support Vector Machines 
+for multiclass classfication, Official Conll 2005 Shared Task scrips for evaluation and three sets of feature
+enginnering.
+
+
+## A golden set example:
 
 | ID | FORM     | LEMMA    | GPOS  | MORPH       | DTREE | FUNC | CTREE     | PRED     | ARG       |
 |----|----------|----------|-------|-------------|-------|------|-----------|----------|-----------|
@@ -18,8 +25,26 @@
 | 13 | Portugal | Portugal | prop  | M\|S        | 12    | P<   | (NP*))))  | _        | *         |
 | 14 | .        | .        | pu    | -           | 8     | PUC  | *)        | -        | *         |
 
-## SEMANTIC ROLE LABELING BR
-### References (PT)
+## The Golden Set Features:
+## Sematic Role Labels
+
+## FEATURE ENGINEERING (BELTRAO, 2016)
+### Window features
+### Context features
+### Dtree featires
+
+## SETUP
+### Project
+### Python
+### Pearl
+### Liblinear
+
+## RESULTS
+### State of the art.
+### Partial results.
+
+
+## BIBLIOGRAPHY (PT)
     (ALVA-MANCHEGO, 2013)
     Anotação automática semissupervisionada de papéis semânticos para o português do Brasil
 >http://www.teses.usp.br/teses/disponiveis/55/55134/tde-14032013-150816/publico/dissrevfernandoAlva.pdf
