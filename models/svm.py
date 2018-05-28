@@ -22,10 +22,11 @@ S = [0, 1, 2, 3, 4, 5, 6, 7]
 C = 0.0625
 
 
-def svm_srl(cost=C, context=True, dtree=True, solvers=S, window=True):
+def svm_srl(cost=C, context=True, dtree=True, solvers=S, window=True, load=False):
     # Golden standard columns
     conllcols = ('ID', 'FORM', 'LEMMA', 'GPOS', 'MORF', 'DTREE', 'FUNC', 'CTREE', 'PRED', 'HEAD')
 
+    refresh = not load
     # Solves target directories
     target_dir = 'experiments/'
     if context:
@@ -40,7 +41,7 @@ def svm_srl(cost=C, context=True, dtree=True, solvers=S, window=True):
     if not os.path.isdir(target_dir):
             os.mkdir(target_dir)
 
-    db, lexicons, columns, ind = process(context, dtree, window, refresh=True)
+    db, lexicons, columns, ind = process(context, dtree, window, refresh=refresh)
 
     evaluator = Evaluator(db, lexicons, columns, ind, target_dir)
     inputs, outputs, bounds, feature_columns = to_svm(db, lexicons, conllcols)

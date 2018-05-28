@@ -62,6 +62,7 @@ if __name__ == '__main__':
     parser.add_argument('-context', action='store_true', help='''uses group of feature around predicate''')
     parser.add_argument('-dtree', action='store_true', help='''dependency tree parameters''')
     parser.add_argument('-window', action='store_true', help='''lead and lag set of parameters''')
+    parser.add_argument('-load', action='store_true', help='''loads precomputed features''')
 
     
     args = parser.parse_args()
