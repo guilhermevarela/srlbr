@@ -3,8 +3,8 @@ from models import process, to_svm, SVM, Evaluator
 
 if __name__ == '__main__':
     conllcols = ('ID', 'FORM', 'LEMMA', 'GPOS', 'MORF', 'DTREE', 'FUNC', 'CTREE', 'PRED', 'HEAD')
-    target_dir = 'datasets_1.1/contexts'
-    db, lexicons, columns, ind = process(refresh=False)
+    target_dir = 'datasets_1.1/dtree'
+    db, lexicons, columns, ind = process(refresh=True)
 
     evaluator = Evaluator(db, lexicons, columns, ind, target_dir)
     inputs, outputs, bounds, feature_columns = to_svm(db, lexicons, conllcols)

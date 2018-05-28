@@ -70,12 +70,13 @@ def to_svm(db, lexicons, conll_columns):
         for col in columns:
             if col not in ['HEAD', 'P']:
                 dim = bounds[col]
+                value = db[col].get(idx, None)
                 try:
-                    if db[col][idx]:    # might be string or non zero numeric value
-                        if isinstance(db[col][idx], str):   # is a categorical column
+                    if value:    # might be string or non zero numeric value
+                        if isinstance(value, str):   # is a categorical column
                             lexcol = get_lex(col)
                             inputs[idx][lb + lexicons[lexcol][db[col][idx]]] = 1.0
-                        elif not isnan(db[col][idx]):
+                        elif not isnan(value):
                              inputs[idx][lb] = float(db[col][idx])
                 except KeyError:
                     import code; code.interact(local=dict(globals(), **locals()))
