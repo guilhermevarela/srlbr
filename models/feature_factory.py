@@ -994,24 +994,27 @@ def _process_conll():
     return db, lexicons, columns, ind
 
 
-def process(refresh=True):
+def process(context=False, dtree=False, windows=True, refresh=True):
     '''
         Processes all engineered features
     '''
     db, lexicons, columns, ind = _process_conll()
 
-    # Making column moving windpw around column
-    # Set of featured attributes 
-    # windows = get_shifter(db, refresh)
-    # db.update(windows)
-
     # Making tokens around predicate available
-    # contexts = get_ctx_p(db, refresh)
-    # db.update(contexts)
+    if context:
+        contexts = get_ctx_p(db, refresh)
+        db.update(contexts)
 
     # Dtree parsing
-    deptree = get_dtree(db, refresh)
-    db.update(deptree)
+    if dtree:
+        deptree = get_dtree(db, refresh)
+        db.update(deptree)
+
+    # Making column moving windpw around column
+    # Set of featured attributes
+    if windows:
+        windows = get_shifter(db, refresh)
+        db.update(windows)
 
     return db, lexicons, columns, ind
 
@@ -1071,11 +1074,11 @@ if __name__ == '__main__':
 
     # import code; code.interact(local=dict(globals(), **locals()))
     # Making DepTree Parser
-    depfinder = FeatureFactory().make('ColumnDepTreeParser', db)
+    # depfinder = FeatureFactory().make('ColumnDepTreeParser', db)
 
-    lemma_dependencies = depfinder.define(['LEMMA']).run()
-    import code; code.interact(local=dict(globals(), **locals()))
-    _store(lemma_dependencies, 'lemma', 'datasets_1.1/csvs/column_deptree/')
+    # lemma_dependencies = depfinder.define(['LEMMA']).run()
+    # import code; code.interact(local=dict(globals(), **locals()))
+    # _store(lemma_dependencies, 'lemma', 'datasets_1.1/csvs/column_deptree/')
     # depfinder = FeatureFactory().make('ColumnDepTreeParser', db)
     # gpos_depentencies = depfinder.define(['GPOS']).run()
     # _store(gpos_depentencies, 'gpos', 'datasets_1.1/csvs/column_deptree/')

@@ -19,23 +19,28 @@ from collections import defaultdict
 from models.feature_factory import process
 from models.evaluator import Evaluator
 S = [0, 1, 2, 3, 4, 5, 6, 7]
-C = [0.0625]
+C = 0.0625
+
 
 def svm_srl(cost=C, context=True, dtree=True, solvers=S, window=True):
+    # Golden standard columns
     conllcols = ('ID', 'FORM', 'LEMMA', 'GPOS', 'MORF', 'DTREE', 'FUNC', 'CTREE', 'PRED', 'HEAD')
-    
-    target_dir = 'datasets_1.1/'
+
+    # Solves target directories
+    target_dir = 'experiments/'
     if context:
         target_dir += 'context'
-
+        if not os.path.isdir(target_dir):
+            os.mkdir(target_dir)
     if dtree:
         target_dir += 'dtree' if target_dir[-1] == '/' else '-dtree'
 
     if window:
         target_dir += 'window' if target_dir[-1] == '/' else '-window'
+    if not os.path.isdir(target_dir):
+            os.mkdir(target_dir)
 
-    target_dir = 'datasets_1.1/dtree'
-    db, lexicons, columns, ind = process(refresh=True)
+    db, lexicons, columns, ind = process(context, dtree, window, refresh=True)
 
     evaluator = Evaluator(db, lexicons, columns, ind, target_dir)
     inputs, outputs, bounds, feature_columns = to_svm(db, lexicons, conllcols)
@@ -57,7 +62,7 @@ def svm_srl(cost=C, context=True, dtree=True, solvers=S, window=True):
 
     svm = SVM()
     for s in solvers:
-        optargs = '-s {:} -c {:0.4f}'.format(s, cost[0])
+        optargs = '-s {:} -c {:0.4f}'.format(s, cost)
         print('Training ... with_optargs({:})'.format(optargs))
         svm.fit(Xtrain, Ytrain, optargs)
         print('Training ... done')
