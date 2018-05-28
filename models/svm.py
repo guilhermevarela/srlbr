@@ -11,11 +11,83 @@
 import pickle
 import os
 import glob
-# import .lib.liblinearutil as _util
+
 import models.lib as _util
 from numpy import isnan
 from collections import defaultdict
 
+from models.feature_factory import process
+from models.evaluator import Evaluator
+S = [0, 1, 2, 3, 4, 5, 6, 7]
+C = 0.0625
+
+
+def svm_srl(cost=C, context=True, dtree=True, solvers=S, window=True, load=False):
+    # Golden standard columns
+    conllcols = ('ID', 'FORM', 'LEMMA', 'GPOS', 'MORF', 'DTREE', 'FUNC', 'CTREE', 'PRED', 'HEAD')
+
+    refresh = not load
+    # Solves target directories
+    target_dir = 'experiments/'
+    if context:
+        target_dir += 'context'
+        if not os.path.isdir(target_dir):
+            os.mkdir(target_dir)
+    if dtree:
+        target_dir += 'dtree' if target_dir[-1] == '/' else '-dtree'
+
+    if window:
+        target_dir += 'window' if target_dir[-1] == '/' else '-window'
+    if not os.path.isdir(target_dir):
+            os.mkdir(target_dir)
+
+    db, lexicons, columns, ind = process(context, dtree, window, refresh=refresh)
+
+    evaluator = Evaluator(db, lexicons, columns, ind, target_dir)
+    inputs, outputs, bounds, feature_columns = to_svm(db, lexicons, conllcols)
+
+
+    # DEFINE Xtrain, Ytrain
+    start = ind['wTreino.conll']['start']
+    finish = ind['wTreino.conll']['finish']
+    trainrng = range(start, finish)
+    Xtrain = [inputs[idx] for idx in trainrng]
+    Ytrain = [outputs[idx] for idx in trainrng]
+
+    # DEFINE Xvalid, Yvalid
+    start = ind['wValidacao.conll']['start']
+    finish = ind['wValidacao.conll']['finish']
+    validrng = range(start, finish)
+    Xvalid = [inputs[idx] for idx in validrng]
+    Yvalid = [outputs[idx] for idx in validrng]
+
+    svm = SVM()
+    for s in solvers:
+        optargs = '-s {:} -c {:0.4f}'.format(s, cost)
+        print('Training ... with_optargs({:})'.format(optargs))
+        svm.fit(Xtrain, Ytrain, optargs)
+        print('Training ... done')
+
+        keys = ('y_hat', 'acc', 'mse', 'scc')
+        print('Insample prediction ...')
+
+        predictions = svm.predict(Xtrain, Ytrain)
+        train_props = predictions['Yhat'].copy()
+
+        evaluator.evaluate(train_props, optargs)
+
+
+        print('Insample prediction ... done')
+
+
+        print('Outsample prediction ...')
+
+        predictions = svm.predict(Xvalid, Yvalid, i0=len(train_props))
+        valid_props = predictions['Yhat'].copy()
+        evaluator.evaluate(valid_props, optargs)
+
+
+        print('Outsample prediction ... done')
 
 def to_svm(db, lexicons, conll_columns):
     '''
@@ -155,51 +227,3 @@ class _SVMIO(object):
             picklename = '{:}{:}.pickle'.format(target_dir, key)
             with open(picklename, '+wb') as f:
                 pickle.dump(value, f, pickle.HIGHEST_PROTOCOL)
-
-
-if __name__ == '__main__':
-    svm = SVM()
-
-    encoding = 'hot'
-    # alias = 'glo50'
-    # propbank = PropbankEncoder.recover('datasets/binaries/deep_glo50.pickle')
-    print('Loading train set ...')
-    input_path = 'datasets/svms/{:}/train.svm'.format(encoding)
-    print(input_path)
-    Ytrain, Xtrain = _SVMIO.read(input_path)
-    print('Loading train set ... done')
-
-    print('Loading validation set ...')
-
-    input_path = 'datasets/svms/{:}/valid.svm'.format(encoding)
-    Yvalid, Xvalid = _SVMIO.read(input_path)
-    print('Loading validation set ... done')
-
-    for s in (0, 1, 2, 3, 4, 5, 6, 7):
-        # optargs = '-s {:} -v 10'.format(s)
-        optargs = '-s {:} -c {:0.4f}'.format(s, 0.0625)
-        print('Training ... with_optargs({:})'.format(optargs))
-        svm.fit(Xtrain, Ytrain, optargs)
-        print('Training ... done')
-
-        keys = ('y_hat', 'acc', 'mse', 'scc')
-        print('Insample prediction ...')
-
-        outputs = svm.predict(Xtrain, Ytrain)
-        train_d = outputs['Yhat'].copy()
-        del outputs['Yhat']
-        trainstats_d = outputs.copy()
-
-        print('Insample prediction ... done')
-
-
-        print('Outsample prediction ...')
-        outputs = svm.predict(Xvalid, Yvalid, i0=len(train_d))
-        valid_d = outputs['Yhat'].copy()
-
-        del outputs['Yhat']
-        validstats_d = outputs.copy()
-
-        print('Outsample prediction ... done')
-        _SVMIO.dump(encoding, optargs, train=train_d, train_stats=trainstats_d,
-                    valid=valid_d, valid_stats=validstats_d)
