@@ -41,6 +41,24 @@ enginnering.
 | 10      | *ARG*   | Semantic role label for the regent of the argument on *DTREE*   according to PropBank annotations.  |
 
 ## Sematic Role Labels
+| **Tag**     | **Description**                          |
+|-------------|------------------------------------------|
+| **A0**      | Usually the agent (actor).               |
+| **A1**      | Usually the patient or theme (receiver). |
+| **A2...A5** | Verb oriented tags.                      |
+| **AM-ADV**  | Modifier adverb.                         |
+| **AM-CAU**  | Cause.                                   |
+| **AM-DIR**  | Direction.                               |
+| **AM-DIS**  | Discursive.                              |
+| **AM-EXT**  | Extension.                               |
+| **AM-MED**  | Non documented tag.                      |
+| **AM-LOC**  | Location.                                |
+| **AM-MNR**  | Manner.                                  |
+| **AM-NEG**  | Negation.                                |
+| **AM-PNC**  | Purpose.                                 |
+| **AM-PRD**  | Secondary predication.                   |
+| **AM-REC**  | Reciprocal.                              |
+| **AM-TMP**  | Temporal.                                |
 
 ## FEATURE ENGINEERING (BELTRAO, 2016)
 ### Window features
