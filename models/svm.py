@@ -29,6 +29,9 @@ def svm_srl(cost=C, context=True, dtree=True, solvers=S, window=True, load=False
     refresh = not load
     # Solves target directories
     target_dir = 'experiments/'
+    if not os.path.isdir(target_dir):
+        os.mkdir(target_dir)
+
     if context:
         target_dir += 'context'
         if not os.path.isdir(target_dir):
