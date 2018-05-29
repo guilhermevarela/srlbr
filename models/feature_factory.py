@@ -402,40 +402,6 @@ class ColumnDepTreeParser(object):
 
             if process:
                 self._dtree_parse(predicate_d[prev_prop], lb, ub)
-                # G, root = self._build(lb, ub)
-                
-                # for i in range(lb, ub):
-                #     self._dtreeparse_ancestors(G, root, i)
-                #     # Find children, parent and grand-parent
-                #     # result = self._make_lookupnodes()
-                #     # q = deque(list())
-                #     # self._dfs_lookup(G, root, i, q, result)
-                #     # for key, nodeidx in result.items():
-                #     #     for col in self.columns:
-                #     #         new_key = '{:}_{:}'.format(col, key).upper()
-                #     #         if nodeidx is None:
-                #     #             self.kernel[new_key][i] = None
-                #     #         else:
-                #     #             self.kernel[new_key][i] = self.db[col][nodeidx]
-                #     # self._refresh(G)
-                #     # pred = predicate_d[prev_prop]
-                #     # self._dtreeparse_paths(G, pred, lb, ub)
-                #     # Find path to predicate                    
-                #     # result = {}
-                #     # q = deque(list())
-                #     search_pred = predicate_d[prev_prop]
-                #     self._dtreeparse_paths(G, search_pred, i)
-                #     # self._dfs_path(G, i, pred, q, result)
-                #     # for key, nodeidx in result.items():
-                #     #     for col in self.columns:
-                #     #         if col in ('GPOS', 'FUNC'):
-                #     #             _key = key.split('_')[0]
-                #     #             new_key = '{:}_{:}'.format(col, _key).upper()
-                #     #             if nodeidx is None:
-                #     #                 self.kernel[new_key][i] = None
-                #     #             else:
-                #     #                 self.kernel[new_key][i] = self.db[col][nodeidx]
-                #     # self._refresh(G)
 
             process = False
             prev_prop = proposition
@@ -445,41 +411,6 @@ class ColumnDepTreeParser(object):
         lb = ub
         ub = prev_time + 1
         self._dtree_parse(predicate_d[prev_prop], lb, ub)
-        # G, root = self._build(lb, ub)
-        
-        # # pred = predicate_d[prev_prop]
-        # # self._dtreeparse_paths(G, pred, lb, ub)        
-        # for i in range(lb, ub):
-        #     self._dtreeparse_ancestors(G, root, i)
-        #     # Find children, parent and grand-parent
-        #     # result = self._make_lookupnodes()
-        #     # q = deque(list())
-        #     # self._dfs_lookup(G, root, i, q, result)
-        #     # for key, nodeidx in result.items():
-        #     #     for col in self.columns:
-        #     #         new_key = '{:}_{:}'.format(col, key).upper()
-        #     #         if nodeidx is None:
-        #     #             self.kernel[new_key][i] = None
-        #     #         else:
-        #     #             self.kernel[new_key][i] = self.db[col][nodeidx]
-        #     # self._refresh(G)
-
-        #     # Find path to predicate
-        #     # result = {}
-        #     # q = deque(list())
-        #     search_pred = predicate_d[prev_prop]
-        #     self._dtreeparse_paths(G, search_pred, i)
-        #     # self._dfs_path(G, i, pred, q, result)
-        #     # for key, nodeidx in result.items():
-        #     #     for col in self.columns:
-        #     #         if col in ('GPOS', 'FUNC'):
-        #     #             _key = key.split('_')[0]
-        #     #             new_key = '{:}_{:}'.format(col, _key).upper()
-        #     #             if nodeidx is None:
-        #     #                 self.kernel[new_key][i] = None
-        #     #             else:
-        #     #                 self.kernel[new_key][i] = self.db[col][nodeidx]
-        #     # self._refresh(G)
 
         return self.kernel
 
