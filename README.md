@@ -108,7 +108,21 @@ enginnering.
 | **PosRelVerb**        | If _token_ is before or after verb.                                                                                                                             |
 
 ### Dependency Tree Features
-     Token depentencies and path to predicate.
+  Token depentencies and path to predicate.
+
+| **Atribute**                 | **Description**                                                                               |
+|------------------------------|-----------------------------------------------------------------------------------------------|
+| **DepLemmaParent**           | **LEMMA** from the father of the _token_.                                                     |
+| **DepLemmaGrandparent**      | **LEMMA** from the grandfather of the _token_.                                                |
+| **DepLemmaChild 1, 2 and 3** | **LEMMA** from the 3 first children of the _token_.                                           |
+| **DepGPOSParent**            | **GPOS** from the father of the _token_.                                                      |
+| **DepGPOSGrandParent**       | **GPOS** from the grandfather of the _token_.                                                 |
+| **DepGPOSChild 1, 2 and 3**  | **GPOS** from the 3 first children of the _token_.                                            |
+| **DepFuncParent**            | **FUNC** from the father of the _token_.                                                      |
+| **DepFuncGrandParent**       | **FUNC** from the grandfather of the _token_.                                                 |
+| **DepFuncChild 1, 2 and 3**  | **FUNC** from the 3 first children of the _token_.                                            |
+| **DepPathFunc**              | Path of **FUNC** tags between _token_ and target verb passing through minor common ancestor.  |
+| **DepPathGPOS**              |  Path of **GPOS** tags between _token_ and target verb passing through minor common ancestor. |
 
 ## SETUP
 ### Project
