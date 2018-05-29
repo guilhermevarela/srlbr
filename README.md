@@ -124,8 +124,48 @@ enginnering.
 | **DepPathFunc**              | Path of **FUNC** tags between _token_ and target verb passing through minor common ancestor.  |
 | **DepPathGPOS**              |  Path of **GPOS** tags between _token_ and target verb passing through minor common ancestor. |
 
+## Project
+The following defines the current project structure tree:
+
+```
+- srlbr/
+    - datasets_1.1/
+        - conll/
+        - csvs/
+        - props/
+    - models/
+        - lib/
+        - __init__.py
+        - evaluator.py
+        - feature_factory.py
+        - svm.py 
+        - utils.py        
+    - srlconll-1.1/
+    - requirements.txt
+    - README.md
+    - srl.py        
+    - .gitignore
+```
+### datasets_1.1/conll/
+ Formatted Train, test and validation _gold-standard_ in a format suitable for machine learning models. Originals can be found [here.](http://www.nilc.icmc.usp.br/portlex/index.php/en/projects/propbankbringl)
+### datasets_1.1/csvs/
+ Stored feature columns.
+### datasets_1.1/props/
+ _gold-standard_ propositions which are evaluated by conll script.
+### models/lib/
+ Liblinear executables and python liblinear.py and liblinearutil.py
+### models/\_\_init\_\_.py
+ Exports svm_srl function
+### models/evaluator.py
+ Thin wrapper for the conll script uses subprocess and runs the official [conll](http://www.lsi.upc.edu/~srlconll/soft.html) script.
+### models/feature_factory.py
+ Here the features are engineered
+### models/svm.py
+ Wrapper of liblinear calls on liblinear lib and main function svm_srl.
+### models/utils.py
+ Handles storing.
+
 ## SETUP
-### Project
 ### Python
 ### Pearl
 ### Liblinear
