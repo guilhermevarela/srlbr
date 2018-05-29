@@ -77,19 +77,35 @@ enginnering.
 ### Window Features
   Lead and lag features around the token.
 
-| **Attribute**           | **Description**                           |
-|-------------------------|-------------------------------------------|
-| _LeftForm 1,2, and 3_   | _FORM_ from the 3 _tokens_ to the left.   |
-| _RightForm 1,2 and 3_   | _FORM_ from the 3 _tokens_ to the right.  |
-| _LeftFunc 1,2 and 3_    | _FUNC_ from the 3 _tokens_ to the left.   |
-| _RightFunc 1,2 and 3_   | _FUNC_ from the 3 _tokens_ to the right.  |
-| _LeftLemma 1,2 and 3_   | _LEMMA_ from the 3 _tokens_ to the left.  |
-| _RightLemma 1,2, and 3_ | _LEMMA_ from the 3 _tokens_ to the right. |
-| _LeftGPOS 1,2 and 3_    | _GPOS_ from the 3 _tokens_ to the left.   |
-| _RightGPOS 1,2 and 3_   | _GPOS_ from the 3 _tokens_ to the right.  |    
+| **Attribute**             | **Description**                             |
+|---------------------------|---------------------------------------------|
+| **LeftForm 1,2, and 3**   | **FORM** from the 3 _tokens_ to the left.   |
+| **RightForm 1,2 and 3**   | **FORM** from the 3 _tokens_ to the right.  |
+| **LeftFunc 1,2 and 3**    | **FUNC** from the 3 _tokens_ to the left.   |
+| **RightFunc 1,2 and 3**   | **FUNC** from the 3 _tokens_ to the right.  |
+| **LeftLemma 1,2 and 3**   | **LEMMA** from the 3 _tokens_ to the left.  |
+| **RightLemma 1,2, and 3** | **LEMMA** from the 3 _tokens_ to the right. |
+| **LeftGPOS 1,2 and 3**    | **GPOS** from the 3 _tokens_ to the left.   |
+| **RightGPOS 1,2 and 3**   | **GPOS** from the 3 _tokens_ to the right.  |    
 
 ### Context Features
-    Lead and lag features around predicate.
+  Lead and lag features around predicate.
+
+| **Attribute**         | **Description**                                                                                                                                                 |
+|-----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **PredLemma**         | **LEMMA** of target verb                                                                                                                                        |
+| **PredLeftLemma**     | **LEMMA** of _token_ to the left of target verb.                                                                                                                |
+| **PredRightLemma**    | **LEMMA** of _token_ to the right of the target verb.                                                                                                           |
+| **PredGPOS**          | **GPOS** of target verb.                                                                                                                                        |
+| **PredLeftGPOS**      | **GPOS** of _token_ to the left of target verb.                                                                                                                 |
+| **PredRightGPOS**     | **GPOS** of _token_ to the right of target verb.                                                                                                                |
+| **PredFunc**          | **FUNC** of target verb.                                                                                                                                        |
+| **PredLeftFunc**      | **FUNC** of the _token_ to the left of the verb.                                                                                                                |
+| **PredRightFunc**     | **FUNC** of the _token_ to the right of the verb.                                                                                                               |
+| **PredicateDistance** | **ID** of the target verb minus **ID** of current _token_.                                                                                                      |
+| **PredMorph 1..n**    | Set of 32 **MORPH** for target verb.                                                                                                                            |
+| **PassiveVoice**      | Passive voice indicator. True if verb has **GPOS**=v-pcp and is   proceeded for _token_ with **LEMMA**=ser having or not _token_with **GPOS**=adv between them. |
+| **PosRelVerb**        | If _token_ is before or after verb.                                                                                                                             |
 
 ### Dependency Tree Features
      Token depentencies and path to predicate.
