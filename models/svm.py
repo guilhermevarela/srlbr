@@ -140,7 +140,8 @@ def to_svm(db, lexicons, conll_columns):
     for idx in db['HEAD']:
         lb = 1
         for col in columns:
-            if col not in ['HEAD', 'P']:
+            # if col not in ['HEAD', 'P']:
+            if col not in ['HEAD', 'P', 'ID', 'DTREE', 'CTREE']:
                 dim = bounds[col]
                 value = db[col].get(idx, None)
                 try:
@@ -209,10 +210,9 @@ class _SVMIO(object):
         '''
             Writes output in pickle format
         '''
-        # print(kwargs)
         hparam = '_'.join(sorted(optargs.split('-')))
         hparam = hparam.replace(' ', '-')
-        hparam =  encoding + hparam
+        hparam = encoding + hparam
 
         target_dir = 'outputs/svm/{:}/'.format(hparam)
         if not os.path.exists(target_dir):
