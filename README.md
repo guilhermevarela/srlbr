@@ -27,18 +27,18 @@ enginnering.
 
 ## The Golden Set Features:
 
-| **Num** | **Name**| **Description**                                                                                     |
-|---------|---------|-----------------------------------------------------------------------------------------------------|
-| 1       | *ID*    | Counter of tokens that begins at 1 for each new proposition.                                        |
-| 2       | *FORM*  | Tokenized word or punctuation sign.                                                                 |
-| 3       | *LEMMA* | Lemma _gold-standard_ for *FORM*.                                                                   |
-| 4       | *GPOS*  | Post tagging _gold-standard_ for *FORM*.                                                            |
-| 5       | *MORPH* | Morphological features _gold-standard_.                                                             |
-| 6       | *DTREE* | Dependency tree _gold-standard_.                                                                    |
-| 7       | *FUNC*  | Syntactic function of the _token_ for your regent in dependency tree.                               |
-| 8       | *CTREE* | Syntactic tree _gold-standard_.                                                                     |
-| 9       | *PRED*  | Semantic Predicates on preposition.                                                                 |
-| 10      | *ARG*   | Semantic role label for the regent of the argument on *DTREE*   according to PropBank annotations.  |
+| **Num** | **Name** | **Description**                                                                                     |
+|---------|----------|-----------------------------------------------------------------------------------------------------|
+| 1       | **ID**   | Counter of tokens that begins at 1 for each new proposition.                                        |
+| 2       | **FORM** | Tokenized word or punctuation sign.                                                                 |
+| 3       | **LEMMA**| Lemma _gold-standard_ for *FORM*.                                                                   |
+| 4       | **GPOS** | Post tagging _gold-standard_ for *FORM*.                                                            |
+| 5       | **MORPH**| Morphological features _gold-standard_.                                                             |
+| 6       | **DTREE**| Dependency tree _gold-standard_.                                                                    |
+| 7       | **FUNC** | Syntactic function of the _token_ for your regent in dependency tree.                               |
+| 8       | **CTREE**| Syntactic tree _gold-standard_.                                                                     |
+| 9       | **PRED** | Semantic Predicates on preposition.                                                                 |
+| 10      | **ARG**  | Semantic role label for the regent of the argument on *DTREE*   according to PropBank annotations.  |
 
 ## Sematic Role Labels
 |   **Tag**   | **Description**                          |
@@ -61,13 +61,21 @@ enginnering.
 |  **AM-TMP** | Temporal.                                |
 
 ## FEATURE ENGINEERING (BELTRAO, 2016)
-    There are 5 groups of features described on the dissertation, 4 of which are implemented as follows:
+  There are 5 groups of features described on the dissertation, 4 of which are implemented as follows:
 
 ### Golden Standard Features
-    All golden standard features except **ARG**.
+  All golden standard features except **ARG**.
+
+| **Attribute** | **Description**                                                       |
+|---------------|-----------------------------------------------------------------------|
+| **FORM**      | **FORM** Tokenized word or punctuation sign.                          |
+| **LEMMA**     | Lemma _gold-standard_ for **FORM**.                                   |
+| **GPOS**      | Post tagging _gold-standard_ for **FORM**.                            |
+| **MORPH**     | Morphological features _gold-standard_.                               |
+| **FUNC**      | Syntactic function of the _token_ for your regent in dependency tree. |
 
 ### Window Features
-    Lead and lag features around the token.
+  Lead and lag features around the token.
 
 | **Attribute**           | **Description**                           |
 |-------------------------|-------------------------------------------|

@@ -210,10 +210,9 @@ class _SVMIO(object):
         '''
             Writes output in pickle format
         '''
-        # print(kwargs)
         hparam = '_'.join(sorted(optargs.split('-')))
         hparam = hparam.replace(' ', '-')
-        hparam =  encoding + hparam
+        hparam = encoding + hparam
 
         target_dir = 'outputs/svm/{:}/'.format(hparam)
         if not os.path.exists(target_dir):
