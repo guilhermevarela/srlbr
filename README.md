@@ -184,24 +184,38 @@ The following defines the current project structure tree:
 
 ## SETUP
 ### Python
+
         > pip install -r requirements.txt
+
 ### Pearl
  Conll 2005 shared task uses Pearl 5. Chances are that is already installed.
+
         > perl -v
+ 
  Set the PERL5LIB environment variable.
+
         > setenv PERL5LIB $HOME/path/to/srlbr/srlconll-1.1/lib:$PERL5LIB
+
  Usage:
+
         > perl $HOME/path/to/srlbr/srlconll-1.1/bin/srl-eval.pl <gold_props> <predicted_props>
+
+
  The full installation installation instructions can be found srlconll-1.1/
 
 ### Liblinear
  Download [liblinear for python.](https://github.com/cjlin1/liblinear/tree/master/python)
  Navegate to the folder.
+
         > make
+
+
  Place executables *.so. files at models/lib and liblinear.py and liblinearutils.py.
 
 ## USAGE
+
         > python srl.py -h
+
  
 Summons help
 
