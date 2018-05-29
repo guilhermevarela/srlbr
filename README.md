@@ -186,24 +186,61 @@ The following defines the current project structure tree:
 ### Python
         > pip install -r requirements.txt
 ### Pearl
- Conll 2005 shared task uses Pearl 5. Chances are is already installed.
-    > perl -v
+ Conll 2005 shared task uses Pearl 5. Chances are that is already installed.
+        > perl -v
  Set the PERL5LIB environment variable.
-    > setenv PERL5LIB $HOME/path/to/srlbr/srlconll-1.1/lib:$PERL5LIB
+        > setenv PERL5LIB $HOME/path/to/srlbr/srlconll-1.1/lib:$PERL5LIB
  Usage:
-    > perl $HOME/path/to/srlbr/srlconll-1.1/bin/srl-eval.pl <gold_props> <predicted_props>
+        > perl $HOME/path/to/srlbr/srlconll-1.1/bin/srl-eval.pl <gold_props> <predicted_props>
  The full installation installation instructions can be found srlconll-1.1/
 
 ### Liblinear
  Download [liblinear for python.](https://github.com/cjlin1/liblinear/tree/master/python)
  Navegate to the folder.
-    > make
+        > make
  Place executables *.so. files at models/lib and liblinear.py and liblinearutils.py.
 
 ## USAGE
+        > python srl.py -h
+ 
+Summons help
+
+        > python srl.py
+
+Runs multi-class classification using the following solvers:
+
+| **Solver** | **Description**                                               |
+|------------|---------------------------------------------------------------|
+| 0          | L2-regularized logistic regression (primal)                   |
+| 1          | L2-regularized L2-loss support vector classification (dual)   |
+| 2          | L2-regularized L2-loss support vector classification (primal) |
+| 3          | L2-regularized L1-loss support vector classification (dual)   |
+| 4          | support vector classification by Crammer and Singer           |
+| 5          | L1-regularized L2-loss support vector classification          |
+| 6          | L1-regularized logistic regression                            |
+| 7          | L2-regularized logistic regression (dual),for regression      |
+
+Using only _gold-standard_ and _windows_ set of features.
+
+        > python srl.py 1 -context -dtree -windows
+
+Runs L2-regularized L2-loss support vector classification (dual) with context dtree and windows set of features.
+
 ## RESULTS
 ### State of the art.
-### Partial results.
+|                 | **C** | **Precision** | **Recall** | **F1**  |
+|-----------------|-------|---------------|------------|---------|
+| (BELTRAO, 2016) |0.0625 | 82.17\%       | 82.88\%    | 82.52\% |
+
+### Validation results
+
+| **Features**             | **C**  | **S** | **Precision** | **Recall** | **F1** |
+|--------------------------|--------|-------|---------------|------------|--------|
+| context                  | 0.0625 |   4   |     57.37     |    46.42   | 51.32  |
+| dtree                    | 0.0625 |   4   |     76.31     |    75.13   | 75.72  |
+| window                   | 0.0625 |   2   |     40.61     |    26.79   | 32.28  |
+| context + window         | 0.0625 |   4   |     57.13     |    53.96   | 55.50  |
+| context + dtree + window | 0.0625 |   1   |     76.80     |    75.67   | 76.23  |
 
 
 ## BIBLIOGRAPHY (PT)
