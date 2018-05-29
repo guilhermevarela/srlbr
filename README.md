@@ -147,29 +147,60 @@ The following defines the current project structure tree:
     - .gitignore
 ```
 ### datasets_1.1/conll/
- Formatted Train, test and validation _gold-standard_ in a format suitable for machine learning models. Originals can be found [here.](http://www.nilc.icmc.usp.br/portlex/index.php/en/projects/propbankbringl)
+  Formatted Train, test and validation _gold-standard_ in a format suitable for machine learning models. Originals can be found [here.](http://www.nilc.icmc.usp.br/portlex/index.php/en/projects/propbankbringl)
+
 ### datasets_1.1/csvs/
- Stored feature columns.
+  Stored feature columns.
+
 ### datasets_1.1/props/
- _gold-standard_ propositions which are evaluated by conll script.
+  _gold-standard_ propositions which are evaluated by conll script.
+
 ### models/lib/
- Liblinear executables and python liblinear.py and liblinearutil.py
+  Liblinear executables and python liblinear.py and liblinearutil.py
+
 ### models/\_\_init\_\_.py
- Exports svm_srl function
+  Exports svm_srl function
+
 ### models/evaluator.py
- Thin wrapper for the conll script uses subprocess and runs the official [conll](http://www.lsi.upc.edu/~srlconll/soft.html) script.
+  Thin wrapper for the conll script uses subprocess and runs the official script.
+
 ### models/feature_factory.py
- Here the features are engineered
+  Here the features are engineered
+
 ### models/svm.py
- Wrapper of liblinear calls on liblinear lib and main function svm_srl.
+  Wrapper of liblinear calls on liblinear lib and main function svm_srl.
+
 ### models/utils.py
- Handles storing.
+  Handles storing.
+
+### models/srlconll-1.1/
+  Official Conll 2005 Shared Task [Pearl script](http://www.lsi.upc.edu/~srlconll/soft.html) 
+
+### requirements.txt
+  Python project requirements.
+
+### srl.py
+  Command line callable script to run the script
 
 ## SETUP
 ### Python
+        > pip install -r requirements.txt
 ### Pearl
-### Liblinear
+ Conll 2005 shared task uses Pearl 5. Chances are is already installed.
+    > perl -v
+ Set the PERL5LIB environment variable.
+    > setenv PERL5LIB $HOME/path/to/srlbr/srlconll-1.1/lib:$PERL5LIB
+ Usage:
+    > perl $HOME/path/to/srlbr/srlconll-1.1/bin/srl-eval.pl <gold_props> <predicted_props>
+ The full installation installation instructions can be found srlconll-1.1/
 
+### Liblinear
+ Download [liblinear for python.](https://github.com/cjlin1/liblinear/tree/master/python)
+ Navegate to the folder.
+    > make
+ Place executables *.so. files at models/lib and liblinear.py and liblinearutils.py.
+
+## USAGE
 ## RESULTS
 ### State of the art.
 ### Partial results.
